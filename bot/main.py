@@ -80,8 +80,8 @@ async def confirm_account_handler(callback: CallbackQuery):
     currency = supabase.table("currencies").select("id").eq("code", currency_code).execute().data
 
     if not currency:
-        raise ValueError(f"Unknown currency: {currency_code}")
-
+        await callback.message.edit_text(f"⚠️ Unknown currency: {currency_code}. Please check and try again.")
+        return
     # Получаем UUID юзера по telegram_id
     user_data = supabase.table("users").select("id").eq("telegram_id", user_id).execute().data
     if not user_data:
