@@ -52,8 +52,6 @@ def get_account_initializer_agent():
     return chain, instructions or parser.get_format_instructions()
 
 def parse_account_message(message: str) -> dict:
-    # test only
-    print("📨 Message received:", message)
     chain, format_instructions = get_account_initializer_agent()
 
     try:
@@ -62,11 +60,9 @@ def parse_account_message(message: str) -> dict:
             "format_instructions": format_instructions
         })
 
-        # если это строка — пробуем распарсить
         if isinstance(raw_output, str):
             return json.loads(raw_output)
 
-        # если это dict — возвращаем напрямую
         if isinstance(raw_output, dict):
             return raw_output
 

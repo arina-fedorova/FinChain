@@ -17,9 +17,6 @@ venv/
 # Logs
 *.log
 
-# Supabase dumps
-*.sql
-
 # System
 .DS_Store
 Thumbs.db

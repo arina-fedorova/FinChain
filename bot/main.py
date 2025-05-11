@@ -23,10 +23,10 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-# Подключение к Supabase
+# Supabase connection
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
-# Храним временно распарсенные данные (для MVP — в памяти)
+# Temporary storage for user accounts
 user_temp_accounts = {}
 
 @dp.message(F.text == "/start")
@@ -47,12 +47,12 @@ async def handle_freeform_account_message(message: Message):
     try:
         result = parse_account_message(message.text)
         
-        # Проверка на пустой результат
+        # Empty result check
         if not result or result == {}:
             await message.answer("⚠️ I couldn't extract account info. Try rephrasing.")
             return
 
-        # Сохраняем временно в память
+        # Save to temporary storage
         user_temp_accounts[message.from_user.id] = result
 
         await message.answer(
@@ -82,14 +82,15 @@ async def confirm_account_handler(callback: CallbackQuery):
     if not currency:
         await callback.message.edit_text(f"⚠️ Unknown currency: {currency_code}. Please check and try again.")
         return
-    # Получаем UUID юзера по telegram_id
+    
+    # Recieve user ID from Supabase
     user_data = supabase.table("users").select("id").eq("telegram_id", user_id).execute().data
     if not user_data:
         await callback.message.edit_text("⚠️ User not found. Use /start.")
         return
     user_uuid = user_data[0]["id"]
 
-    # Вставляем в базу
+    # DB insert
     supabase.table("accounts").insert({
         "user_id": user_uuid,
         "name": data["name"],
@@ -100,7 +101,7 @@ async def confirm_account_handler(callback: CallbackQuery):
         "rate_source": "manual"
     }).execute()
 
-    # Удаляем из временного хранилища
+    # Revove from temporary storage
     user_temp_accounts.pop(user_id)
 
     await callback.message.edit_text("✅ Account saved!")
